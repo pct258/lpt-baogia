@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1d27">
+<meta name="description" content="Tool báo giá nhanh công nghiệp — Chế tạo máy, Kết cấu thép, Tự động hoá, Thiết kế, Vật liệu. LPT.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BG LPT">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Báo Giá Nhanh Công Nghiệp v2.0 — LPT</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;color:#e2e8f0;font-size:13px;min-height:100vh}
+.app{display:flex;flex-direction:column;height:100vh}
+.header{background:#1a1d27;border-bottom:1px solid #2d3148;padding:9px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.header h1{font-size:15px;font-weight:700;color:#60a5fa}
+.header p{font-size:11px;color:#64748b}
+.badge{background:#1e3a5f;color:#60a5fa;border:1px solid #2563eb;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;margin-left:auto}
+.tabs{display:flex;background:#1a1d27;border-bottom:1px solid #2d3148;flex-shrink:0;overflow-x:auto}
+.tab{padding:8px 13px;cursor:pointer;font-size:12px;font-weight:500;color:#64748b;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:5px}
+.tab:hover{color:#94a3b8}
+.tab.active{color:#60a5fa;border-bottom-color:#60a5fa}
+.main{display:flex;flex:1;overflow:hidden}
+.tab-page{display:none;flex:1;overflow:hidden}
+.tab-page.active{display:flex}
+.panel-left{width:410px;flex-shrink:0;background:#1a1d27;border-right:1px solid #2d3148;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:9px}
+.panel-right{flex:1;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:9px}
+.card{background:#141722;border:1px solid #2d3148;border-radius:8px;padding:11px}
+.card-title{font-size:11px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.field{margin-bottom:7px}
+.field label{display:block;font-size:11px;color:#94a3b8;margin-bottom:3px;font-weight:500}
+.field-row{display:flex;gap:6px}
+.field-row .field{flex:1;margin-bottom:0}
+input[type=number],input[type=text],select,textarea{width:100%;background:#0f1117;border:1px solid #2d3148;border-radius:5px;color:#e2e8f0;padding:5px 8px;font-size:12px;transition:border-color .15s;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#3b82f6}
+textarea{resize:vertical;min-height:52px}
+.slider-row{display:flex;align-items:center;gap:8px}
+input[type=range]{flex:1;accent-color:#3b82f6;height:4px;background:#2d3148;border:none;padding:0}
+.slider-val{min-width:36px;text-align:right;font-size:12px;font-weight:700;color:#60a5fa}
+.toggle-group{display:flex;gap:4px;flex-wrap:wrap}
+.toggle-btn{padding:4px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:500;border:1px solid #2d3148;background:transparent;color:#64748b;transition:all .12s;text-align:center;line-height:1.4}
+.toggle-btn.active{background:#1e3a5f;border-color:#3b82f6;color:#60a5fa}
+.toggle-btn:hover:not(.active){border-color:#475569;color:#94a3b8}
+.cost-section{border-radius:7px;overflow:hidden;margin-bottom:2px}
+.cost-section-header{background:#1a1d27;border:1px solid #2d3148;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.cost-section-header:hover{background:#1e2235}
+.cost-section-title{font-size:12px;font-weight:600;color:#94a3b8}
+.cost-section-amount{font-size:13px;font-weight:700;color:#e2e8f0}
+.cost-section-body{border:1px solid #2d3148;border-top:none;background:#141722;padding:8px 12px;display:none}
+.cost-section-body.open{display:block}
+.cost-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1e2235;font-size:11px}
+.cost-row:last-child{border-bottom:none}
+.cost-row-label{color:#64748b}
+.cost-row-value{color:#94a3b8;font-weight:500}
+.total-bar{background:linear-gradient(135deg,#1e3a5f,#1a1d27);border:1px solid #3b82f6;border-radius:8px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center}
+.total-label{font-size:13px;font-weight:600;color:#94a3b8}
+.total-amount{font-size:22px;font-weight:800;color:#60a5fa}
+.total-sub{font-size:10px;color:#475569;margin-top:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:#1a1d27;border:1px solid #2d3148;border-radius:20px;padding:4px 10px;font-size:10px;color:#64748b;display:flex;align-items:center;gap:4px}
+.chip span{color:#94a3b8;font-weight:600}
+.margin-bar{height:6px;border-radius:3px;background:#1a1d27;overflow:hidden;margin:4px 0}
+.margin-fill{height:100%;border-radius:3px;transition:width .3s}
+.btn{padding:7px 13px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;border:none;transition:all .15s;font-family:inherit}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-secondary{background:#1a1d27;color:#94a3b8;border:1px solid #2d3148}
+.btn-secondary:hover{background:#1e2235;color:#e2e8f0}
+.btn-success{background:#059669;color:#fff}
+.btn-success:hover{background:#047857}
+.btn-pdf{background:#7c3aed;color:#fff}
+.btn-pdf:hover{background:#6d28d9}
+.btn-warn{background:#b45309;color:#fff}
+.btn-warn:hover{background:#92400e}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.info-box{background:#0f1117;border:1px solid #2d3148;border-radius:5px;padding:8px}
+.info-box-label{font-size:10px;color:#475569;margin-bottom:2px}
+.info-box-value{font-size:13px;font-weight:700}
+.c-green{color:#10b981}.c-yellow{color:#f59e0b}.c-red{color:#ef4444}.c-blue{color:#60a5fa}.c-purple{color:#a78bfa}
+.risk-tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700}
+.risk-low{background:#052e16;color:#4ade80}
+.risk-med{background:#1c1a0e;color:#facc15}
+.risk-high{background:#2d0a0a;color:#f87171}
+.history-item{background:#141722;border:1px solid #2d3148;border-radius:6px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:border-color .15s}
+.history-item:hover{border-color:#3b82f6}
+.mat-table{width:100%;border-collapse:collapse;font-size:11px}
+.mat-table th{background:#0f1117;color:#64748b;padding:6px 8px;text-align:left;font-weight:600;border-bottom:1px solid #2d3148;white-space:nowrap}
+.mat-table td{padding:5px 8px;border-bottom:1px solid #1e2235;color:#94a3b8;vertical-align:middle}
+.mat-table tr:hover td{background:#141722}
+.mat-table tr:last-child td{border-bottom:none}
+.mat-table td input,.mat-table td select{background:#0f1117;border:1px solid #2d3148;border-radius:4px;color:#e2e8f0;padding:3px 6px;font-size:11px;width:100%;font-family:inherit}
+.mat-table td input:focus,.mat-table td select:focus{outline:none;border-color:#3b82f6}
+.del-btn{background:#2d0a0a;border:1px solid #7f1d1d;color:#f87171;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;font-weight:600}
+.del-btn:hover{background:#450a0a}
+.mat-total-row td{font-weight:700;color:#60a5fa;background:#1a1d27;border-top:2px solid #2d3148}
+.tag-new{background:#052e16;color:#4ade80;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;margin-left:4px}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2d3148;border-radius:2px}
+
+/* ═══════════ MOBILE TOTAL BAR (chỉ hiển thị trên mobile) ═══════════ */
+.mobile-total-bar{display:none}
+
+/* ═══════════ MOBILE / TABLET ≤ 768px ═══════════ */
+@media (max-width: 768px) {
+  body{font-size:12px;padding-bottom:60px}  /* chừa chỗ cho mobile-total-bar */
+  .app{height:auto;min-height:calc(100vh - 60px);min-height:calc(100dvh - 60px)}
+
+  /* Header KHÔNG sticky (tránh đè lên tabs gây ngáng tap) — scroll tự nhiên */
+  .header{padding:8px 10px;flex-wrap:wrap;gap:6px}
+  .header > div:first-child{flex:1;min-width:0}
+  .header h1{font-size:13px;line-height:1.25}
+  .header p{font-size:9.5px;line-height:1.3;margin-top:1px}
+  .badge{font-size:9px;padding:1px 6px;margin-left:0}
+  #storage-badge-header{font-size:9px;padding:1px 6px}
+
+  /* Tabs LƯỚI 3 cột × 2 hàng — không scroll ngang, tap thẳng */
+  .tabs{
+    position:sticky;top:0;z-index:20;
+    background:#1a1d27;border-bottom:1px solid #2d3148;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:3px;
+    padding:4px;overflow:visible
+  }
+  .tab{
+    padding:9px 4px;font-size:10.5px;
+    min-height:42px;
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;line-height:1.2;
+    border:1px solid transparent;border-radius:5px;border-bottom:none;
+    box-sizing:border-box;
+    touch-action:manipulation;-webkit-tap-highlight-color:rgba(96,165,250,.25);
+    cursor:pointer
+  }
+  .tab:active{background:#1e2235}
+  .tab.active{
+    background:#1e3a5f;border-color:#3b82f6;color:#60a5fa;border-bottom:1px solid #3b82f6
+  }
+  .tab .tag-new{font-size:8px;padding:0 4px}
+
+  /* Layout tự nhiên: cả trang scroll, KHÔNG dùng flex:1 trên tab-page */
+  .main{overflow:visible}
+  .tab-page{overflow:visible;flex:none}
+  .tab-page.active{flex-direction:column;overflow:visible;flex:none;display:flex}
+  .panel-left,.panel-right{
+    width:100%;flex:none;overflow:visible;padding:9px;
+    border-right:none;max-height:none;height:auto
+  }
+  .panel-left{border-bottom:1px solid #2d3148}
+
+  /* Mobile total bar fixed ở đáy — luôn thấy giá tổng */
+  .mobile-total-bar{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:linear-gradient(135deg,#1e3a5f,#0f1117);
+    border-top:1.5px solid #3b82f6;
+    padding:9px 14px;align-items:center;gap:10px;
+    box-shadow:0 -4px 14px rgba(0,0,0,.5);
+    padding-bottom:calc(9px + env(safe-area-inset-bottom,0))
+  }
+  .mtb-info{flex:1;min-width:0}
+  .mtb-label{font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mtb-amount{font-size:17px;font-weight:800;color:#60a5fa;line-height:1.15;word-break:break-all}
+  .mtb-jump{
+    flex-shrink:0;background:#2563eb;color:#fff;border:none;
+    padding:8px 12px;border-radius:6px;font-size:11px;font-weight:600;
+    cursor:pointer;min-height:36px;touch-action:manipulation
+  }
+  .mtb-jump:active{background:#1d4ed8}
+
+  /* Cards & components co lại */
+  .card{padding:10px}
+  .card-title{font-size:10.5px;margin-bottom:8px}
+  .field label{font-size:10.5px}
+  input[type=number],input[type=text],select,textarea{font-size:14px;padding:7px 9px}
+  /* iOS không zoom khi focus nếu font ≥16px — ở đây dùng 14px vẫn ổn, nhưng nâng lên cho an toàn: */
+
+  /* Total bar */
+  .total-bar{padding:11px 13px;flex-wrap:wrap;gap:8px}
+  .total-bar > div{min-width:0;flex:1}
+  .total-label{font-size:11px}
+  .total-amount{font-size:18px;word-break:break-all}
+  .total-sub{font-size:9.5px}
+
+  /* Info grid 2 cột vẫn ổn, chỉ giảm padding/font */
+  .info-grid{gap:5px}
+  .info-box{padding:7px}
+  .info-box-label{font-size:9.5px}
+  .info-box-value{font-size:12.5px;word-break:break-word}
+
+  /* Field-row 2 cột vẫn ổn trên mobile portrait */
+  .field-row{gap:5px;flex-wrap:wrap}
+
+  /* Toggle group: chip-style, cho phép wrap */
+  .toggle-group{gap:4px}
+  .toggle-btn{padding:6px 9px;font-size:10.5px;flex:1 1 auto;min-width:60px}
+
+  /* Sliders to hơn để dễ chạm */
+  input[type=range]{height:8px}
+  .slider-val{min-width:34px;font-size:11.5px}
+
+  /* Buttons mỗi cái 1 dòng / nửa dòng cho dễ tap */
+  .btn{padding:9px 12px;font-size:12px;min-height:36px}
+  .btn-row{gap:5px}
+  .btn-row .btn{flex:1 1 calc(50% - 3px);min-width:140px}
+
+  /* Bảng vật liệu: cho scroll ngang, font nhỏ hơn */
+  .mat-table{font-size:10px;min-width:560px}
+  .mat-table th,.mat-table td{padding:4px 5px}
+  .mat-table td input,.mat-table td select{font-size:10.5px;padding:3px 5px}
+  .del-btn{padding:4px 8px;font-size:11px;min-height:28px}
+
+  /* Cost section header dễ tap */
+  .cost-section-header{padding:10px 12px;min-height:42px}
+  .cost-section-title{font-size:11.5px}
+  .cost-section-amount{font-size:12.5px}
+  .cost-row{padding:5px 0;font-size:11px}
+
+  /* History panel */
+  .history-item{padding:10px 12px;flex-wrap:wrap;gap:6px}
+
+  /* Material table wrapper scroll ngang */
+  .mat-table thead th{position:sticky;top:0;background:#0f1117}
+}
+
+/* ═══════════ MÀN HÌNH NHỎ ≤ 480px (phone portrait) ═══════════ */
+@media (max-width: 480px) {
+  .header h1{font-size:12px}
+  .header p{display:none}  /* tagline ẩn để tiết kiệm chỗ */
+  .tab{padding:8px 2px;font-size:9.5px;min-height:40px}
+  .tab .tag-new{display:none}  /* badge MỚI ẩn để gọn */
+  .total-amount{font-size:16px}
+  .info-grid{grid-template-columns:1fr 1fr}
+
+  /* Field-row dồn xuống 1 cột để nhập số dễ hơn */
+  .field-row{flex-direction:column;gap:7px}
+  .field-row .field{flex:none;width:100%}
+
+  .btn-row .btn{flex:1 1 100%;min-width:0}
+  .toggle-btn{min-width:0;font-size:10px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+  <div>
+    <h1>⚡ BÁO GIÁ NHANH — CÔNG NGHIỆP | LPT</h1>
+    <p>Chế tạo máy • Kết cấu • Tự động hoá • Thiết kế • Khối lượng vật liệu</p>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+    <div class="badge">v2.0 PRO</div>
+    <div id="storage-badge-header" onclick="switchTab('history')" title="Click để quản lý lưu trữ" style="
+      cursor:pointer;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;
+      border:1px solid #854d0e;background:#1c1a0e;color:#facc15;white-space:nowrap">
+      ⚠️ localStorage
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('ctm')" id="tab-ctm">⚙️ Chế Tạo Máy</div>
+  <div class="tab" onclick="switchTab('kct')" id="tab-kct">🏗️ Kết Cấu Thép</div>
+  <div class="tab" onclick="switchTab('tdhoa')" id="tab-tdhoa">🤖 Tự Động Hoá</div>
+  <div class="tab" onclick="switchTab('thietke')" id="tab-thietke">📐 Thiết Kế</div>
+  <div class="tab" onclick="switchTab('vattu')" id="tab-vattu">📦 Vật Liệu <span class="tag-new">MỚI</span></div>
+  <div class="tab" onclick="switchTab('history')" id="tab-history">📋 Lịch Sử</div>
+</div>
+
+<!-- ══ CHẾ TẠO MÁY ══ -->
+<div class="tab-page active" id="page-ctm">
+  <div class="panel-left">
+    <div class="card">
+      <div class="card-title">📝 Thông tin dự án</div>
+      <div class="field"><label>Tên / Mô tả hạng mục</label><input type="text" id="ctm-name" placeholder="VD: Máy cắt CNC 3 trục, băng tải..."></div>
+      <div class="field-row">
+        <div class="field"><label>Số lượng</label><input type="number" id="ctm-qty" value="1" min="1" oninput="calcCTM()"></div>
+        <div class="field"><label>Độ phức tạp</label>
+          <select id="ctm-complex" onchange="calcCTM()">
+            <option value="1.0">Đơn giản</option>
+            <option value="1.3" selected>Trung bình</option>
+            <option value="1.6">Phức tạp</option>
+            <option value="2.0">Rất phức tạp</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔩 Vật tư & Nguyên liệu</div>
+      <div class="field-row">
+        <div class="field"><label>Thép kt (kg)</label><input type="number" id="ctm-steel-kg" value="0" min="0" oninput="calcCTM()"></div>
+        <div class="field"><label>Đơn giá thép (₫/kg)</label><input type="number" id="ctm-steel-price" value="22000" step="100" oninput="calcCTM()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Chi tiết cơ khí (₫)</label><input type="number" id="ctm-mech" value="0" step="100000" oninput="calcCTM()"></div>
+        <div class="field"><label>Điện & sensor (₫)</label><input type="number" id="ctm-elec" value="0" step="100000" oninput="calcCTM()"></div>
+      </div>
+      <div class="field"><label>Vật tư phụ, tiêu hao (% vật tư chính)</label>
+        <div class="slider-row"><input type="range" id="ctm-aux" min="3" max="20" value="8" oninput="calcCTM();document.getElementById('ctm-aux-val').textContent=this.value+'%'"><div class="slider-val" id="ctm-aux-val">8%</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">👷 Nhân công & Gia công</div>
+      <div class="field-row">
+        <div class="field"><label>Nhân công (công)</label><input type="number" id="ctm-labor-days" value="0" oninput="calcCTM()"></div>
+        <div class="field"><label>Đơn giá (₫/công)</label><input type="number" id="ctm-labor-rate" value="500000" step="10000" oninput="calcCTM()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Gia công ngoài (₫)</label><input type="number" id="ctm-sub" value="0" step="100000" oninput="calcCTM()"></div>
+        <div class="field"><label>Nhiệt luyện / mạ (₫)</label><input type="number" id="ctm-treat" value="0" step="100000" oninput="calcCTM()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚙️ Gián tiếp & Lợi nhuận</div>
+      <div class="field"><label>Máy móc, khấu hao (% nhân công)</label>
+        <div class="slider-row"><input type="range" id="ctm-machine" min="10" max="60" value="25" oninput="calcCTM();document.getElementById('ctm-machine-val').textContent=this.value+'%'"><div class="slider-val" id="ctm-machine-val">25%</div></div>
+      </div>
+      <div class="field"><label>Quản lý, OH (% tổng trực tiếp)</label>
+        <div class="slider-row"><input type="range" id="ctm-oh" min="5" max="25" value="12" oninput="calcCTM();document.getElementById('ctm-oh-val').textContent=this.value+'%'"><div class="slider-val" id="ctm-oh-val">12%</div></div>
+      </div>
+      <div class="field"><label>Lợi nhuận (%)</label>
+        <div class="slider-row"><input type="range" id="ctm-profit" min="5" max="40" value="18" oninput="calcCTM();document.getElementById('ctm-profit-val').textContent=this.value+'%'"><div class="slider-val" id="ctm-profit-val">18%</div></div>
+      </div>
+      <div class="field"><label>Dự phòng rủi ro (%)</label>
+        <div class="slider-row"><input type="range" id="ctm-risk" min="0" max="20" value="5" oninput="calcCTM();document.getElementById('ctm-risk-val').textContent=this.value+'%'"><div class="slider-val" id="ctm-risk-val">5%</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🚚 Phụ phí</div>
+      <div class="field-row">
+        <div class="field"><label>Vận chuyển (₫)</label><input type="number" id="ctm-ship" value="0" step="100000" oninput="calcCTM()"></div>
+        <div class="field"><label>Lắp đặt (₫)</label><input type="number" id="ctm-install" value="0" step="100000" oninput="calcCTM()"></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-right" id="ctm-output"></div>
+</div>
+
+<!-- ══ KẾT CẤU THÉP ══ -->
+<div class="tab-page" id="page-kct">
+  <div class="panel-left">
+    <div class="card">
+      <div class="card-title">📝 Thông tin</div>
+      <div class="field"><label>Tên hạng mục</label><input type="text" id="kct-name" placeholder="VD: Khung nhà xưởng, giàn giáo..."></div>
+      <div class="field-row">
+        <div class="field"><label>Loại kết cấu</label>
+          <select id="kct-type" onchange="calcKCT()">
+            <option value="1.0">Đơn giản (cột, xà)</option>
+            <option value="1.2" selected>Khung tiêu chuẩn</option>
+            <option value="1.5">Phức tạp (giàn không gian)</option>
+            <option value="1.8">Đặc biệt (tháp, cầu trục)</option>
+          </select>
+        </div>
+        <div class="field"><label>Hệ số gia công</label>
+          <select id="kct-fab" onchange="calcKCT()">
+            <option value="1.0">Thô / cắt hàn</option>
+            <option value="1.15" selected>Cơ bản</option>
+            <option value="1.3">Tinh (kiểm tra, sơn)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚖️ Khối lượng & Vật tư</div>
+      <div class="field-row">
+        <div class="field"><label>Tổng tấn thép (tấn)</label><input type="number" id="kct-tons" value="0" step="0.1" oninput="calcKCT()"></div>
+        <div class="field"><label>Đơn giá thép (₫/tấn)</label><input type="number" id="kct-steel-price" value="22000000" step="100000" oninput="calcKCT()"></div>
+      </div>
+      <div class="field"><label>Hao hụt & cắt mất (%)</label>
+        <div class="slider-row"><input type="range" id="kct-waste" min="3" max="12" value="5" oninput="calcKCT();document.getElementById('kct-waste-val').textContent=this.value+'%'"><div class="slider-val" id="kct-waste-val">5%</div></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Bu lông, neo (₫)</label><input type="number" id="kct-bolt" value="0" step="100000" oninput="calcKCT()"></div>
+        <div class="field"><label>Sơn, chống rỉ (₫)</label><input type="number" id="kct-paint" value="0" step="100000" oninput="calcKCT()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">👷 Nhân công</div>
+      <div class="field"><label>Định mức (công/tấn)</label>
+        <div class="toggle-group">
+          <button class="toggle-btn" onclick="setKCTRate(8,this)">Đơn giản<br><small>8 c/T</small></button>
+          <button class="toggle-btn active" onclick="setKCTRate(12,this)">TB<br><small>12 c/T</small></button>
+          <button class="toggle-btn" onclick="setKCTRate(18,this)">Phức tạp<br><small>18 c/T</small></button>
+          <button class="toggle-btn" onclick="setKCTRate(25,this)">Đặc biệt<br><small>25 c/T</small></button>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Đơn giá NC (₫/công)</label><input type="number" id="kct-labor-rate" value="450000" step="10000" oninput="calcKCT()"></div>
+        <div class="field"><label>NC lắp dựng (công)</label><input type="number" id="kct-erect-labor" value="0" oninput="calcKCT()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚙️ Gián tiếp & Lợi nhuận</div>
+      <div class="field"><label>OH quản lý (%)</label>
+        <div class="slider-row"><input type="range" id="kct-oh" min="5" max="20" value="10" oninput="calcKCT();document.getElementById('kct-oh-val').textContent=this.value+'%'"><div class="slider-val" id="kct-oh-val">10%</div></div>
+      </div>
+      <div class="field"><label>Lợi nhuận (%)</label>
+        <div class="slider-row"><input type="range" id="kct-profit" min="5" max="35" value="15" oninput="calcKCT();document.getElementById('kct-profit-val').textContent=this.value+'%'"><div class="slider-val" id="kct-profit-val">15%</div></div>
+      </div>
+      <div class="field"><label>Dự phòng (%)</label>
+        <div class="slider-row"><input type="range" id="kct-risk" min="0" max="15" value="5" oninput="calcKCT();document.getElementById('kct-risk-val').textContent=this.value+'%'"><div class="slider-val" id="kct-risk-val">5%</div></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Vận chuyển (₫)</label><input type="number" id="kct-ship" value="0" step="100000" oninput="calcKCT()"></div>
+        <div class="field"><label>Thiết kế/BV (₫)</label><input type="number" id="kct-design" value="0" step="100000" oninput="calcKCT()"></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-right" id="kct-output"></div>
+</div>
+
+<!-- ══ TỰ ĐỘNG HOÁ ══ -->
+<div class="tab-page" id="page-tdhoa">
+  <div class="panel-left">
+    <div class="card">
+      <div class="card-title">📝 Dự án</div>
+      <div class="field"><label>Tên dự án</label><input type="text" id="td-name" placeholder="VD: Hệ thống phân loại, robot hàn..."></div>
+      <div class="field"><label>Loại dự án</label>
+        <select id="td-type" onchange="calcTD()">
+          <option value="cai_tao">Cải tạo / Nâng cấp hệ thống cũ</option>
+          <option value="moi" selected>Lắp mới toàn bộ</option>
+          <option value="robot">Hệ thống Robot</option>
+          <option value="scada">SCADA / HMI / MES</option>
+        </select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🤖 Phần cứng & Thiết bị</div>
+      <div class="field-row">
+        <div class="field"><label>PLC / Controller (₫)</label><input type="number" id="td-plc" value="0" step="100000" oninput="calcTD()"></div>
+        <div class="field"><label>HMI / Panel (₫)</label><input type="number" id="td-hmi" value="0" step="100000" oninput="calcTD()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Biến tần / Servo (₫)</label><input type="number" id="td-drives" value="0" step="100000" oninput="calcTD()"></div>
+        <div class="field"><label>Sensor / IO (₫)</label><input type="number" id="td-sensors" value="0" step="100000" oninput="calcTD()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Tủ điện / cáp (₫)</label><input type="number" id="td-panel" value="0" step="100000" oninput="calcTD()"></div>
+        <div class="field"><label>Cơ khí / khung (₫)</label><input type="number" id="td-mech" value="0" step="100000" oninput="calcTD()"></div>
+      </div>
+      <div class="field"><label>Logistics / nhập khẩu (% thiết bị)</label>
+        <div class="slider-row"><input type="range" id="td-logistics" min="0" max="25" value="5" oninput="calcTD();document.getElementById('td-log-val').textContent=this.value+'%'"><div class="slider-val" id="td-log-val">5%</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💻 Lập trình & Tích hợp</div>
+      <div class="field-row">
+        <div class="field"><label>Lập trình PLC (ngày)</label><input type="number" id="td-plc-prog" value="0" oninput="calcTD()"></div>
+        <div class="field"><label>Lập trình HMI (ngày)</label><input type="number" id="td-hmi-prog" value="0" oninput="calcTD()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Tích hợp & Debug (ngày)</label><input type="number" id="td-integ" value="0" oninput="calcTD()"></div>
+        <div class="field"><label>Đơn giá kỹ sư (₫/ngày)</label><input type="number" id="td-eng-rate" value="1200000" step="10000" oninput="calcTD()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔧 Lắp đặt & Vận hành thử</div>
+      <div class="field-row">
+        <div class="field"><label>Lắp đặt (ngày)</label><input type="number" id="td-install-days" value="0" oninput="calcTD()"></div>
+        <div class="field"><label>Đơn giá lắp (₫/ngày)</label><input type="number" id="td-install-rate" value="600000" step="10000" oninput="calcTD()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Vận hành thử (ngày)</label><input type="number" id="td-trial" value="0" oninput="calcTD()"></div>
+        <div class="field"><label>Công tác phí (₫)</label><input type="number" id="td-travel" value="0" step="100000" oninput="calcTD()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚙️ Lợi nhuận & Dự phòng</div>
+      <div class="field"><label>Phí bảo hành (%)</label>
+        <div class="slider-row"><input type="range" id="td-warranty" min="1" max="10" value="3" oninput="calcTD();document.getElementById('td-war-val').textContent=this.value+'%'"><div class="slider-val" id="td-war-val">3%</div></div>
+      </div>
+      <div class="field"><label>Lợi nhuận (%)</label>
+        <div class="slider-row"><input type="range" id="td-profit" min="5" max="45" value="20" oninput="calcTD();document.getElementById('td-profit-val').textContent=this.value+'%'"><div class="slider-val" id="td-profit-val">20%</div></div>
+      </div>
+      <div class="field"><label>Dự phòng tích hợp (%)</label>
+        <div class="slider-row"><input type="range" id="td-risk" min="0" max="20" value="8" oninput="calcTD();document.getElementById('td-risk-val').textContent=this.value+'%'"><div class="slider-val" id="td-risk-val">8%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-right" id="td-output"></div>
+</div>
+
+<!-- ══ THIẾT KẾ ══ -->
+<div class="tab-page" id="page-thietke">
+  <div class="panel-left">
+    <div class="card">
+      <div class="card-title">📝 Dịch vụ thiết kế</div>
+      <div class="field"><label>Tên dự án</label><input type="text" id="tk-name" placeholder="VD: Thiết kế máy đóng gói..."></div>
+      <div class="field"><label>Loại dịch vụ</label>
+        <select id="tk-type" onchange="calcTK()">
+          <option value="co_khi">Cơ khí / Chế tạo</option>
+          <option value="tu_dong" selected>Tự động hoá / Điều khiển</option>
+          <option value="he_thong">Hệ thống / Tổng thể</option>
+          <option value="dao_tao">Đào tạo / Tư vấn</option>
+        </select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">👨‍💻 Nhân lực</div>
+      <div class="field-row">
+        <div class="field"><label>Senior (ngày)</label><input type="number" id="tk-senior" value="0" oninput="calcTK()"></div>
+        <div class="field"><label>Đơn giá (₫/ngày)</label><input type="number" id="tk-senior-rate" value="1500000" step="10000" oninput="calcTK()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Mid/junior (ngày)</label><input type="number" id="tk-junior" value="0" oninput="calcTK()"></div>
+        <div class="field"><label>Đơn giá (₫/ngày)</label><input type="number" id="tk-junior-rate" value="800000" step="10000" oninput="calcTK()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Draftsman (ngày)</label><input type="number" id="tk-tech" value="0" oninput="calcTK()"></div>
+        <div class="field"><label>Đơn giá (₫/ngày)</label><input type="number" id="tk-tech-rate" value="400000" step="10000" oninput="calcTK()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🗂️ Chi phí giao nộp</div>
+      <div class="field-row">
+        <div class="field"><label>In bản vẽ (₫)</label><input type="number" id="tk-print" value="0" step="10000" oninput="calcTK()"></div>
+        <div class="field"><label>Phần mềm (₫)</label><input type="number" id="tk-sw" value="0" step="100000" oninput="calcTK()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Khảo sát (₫)</label><input type="number" id="tk-survey" value="0" step="100000" oninput="calcTK()"></div>
+        <div class="field"><label>Công tác phí (₫)</label><input type="number" id="tk-travel" value="0" step="100000" oninput="calcTK()"></div>
+      </div>
+      <div class="field"><label>Họp, review (% NC)</label>
+        <div class="slider-row"><input type="range" id="tk-meeting" min="0" max="30" value="10" oninput="calcTK();document.getElementById('tk-meeting-val').textContent=this.value+'%'"><div class="slider-val" id="tk-meeting-val">10%</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚙️ Overhead & Lợi nhuận</div>
+      <div class="field"><label>Overhead (% NC)</label>
+        <div class="slider-row"><input type="range" id="tk-oh" min="10" max="40" value="20" oninput="calcTK();document.getElementById('tk-oh-val').textContent=this.value+'%'"><div class="slider-val" id="tk-oh-val">20%</div></div>
+      </div>
+      <div class="field"><label>Lợi nhuận (%)</label>
+        <div class="slider-row"><input type="range" id="tk-profit" min="5" max="50" value="25" oninput="calcTK();document.getElementById('tk-profit-val').textContent=this.value+'%'"><div class="slider-val" id="tk-profit-val">25%</div></div>
+      </div>
+      <div class="field"><label>Dự phòng revision (%)</label>
+        <div class="slider-row"><input type="range" id="tk-revision" min="5" max="30" value="10" oninput="calcTK();document.getElementById('tk-revision-val').textContent=this.value+'%'"><div class="slider-val" id="tk-revision-val">10%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-right" id="tk-output"></div>
+</div>
+
+<!-- ══ VẬT LIỆU ══ -->
+<div class="tab-page" id="page-vattu">
+  <div class="panel-left">
+    <div class="card">
+      <div class="card-title">⚙️ Thêm vật liệu</div>
+      <div class="field"><label>Loại vật liệu</label>
+        <select id="vt-mattype" onchange="updateVTForm()">
+          <optgroup label="── Thép Hình ──">
+            <option value="i_beam">Thép I / H (dầm chữ I, H)</option>
+            <option value="channel">Thép U / C (channel)</option>
+            <option value="angle">Thép L (góc / angle)</option>
+            <option value="flat">Thép F / dẹt (flat bar)</option>
+            <option value="round_bar">Thép tròn đặc</option>
+            <option value="square_bar">Thép vuông đặc</option>
+          </optgroup>
+          <optgroup label="── Thép Ống ──">
+            <option value="round_pipe">Ống tròn (ERW/seamless)</option>
+            <option value="square_pipe">Ống vuông / hộp</option>
+            <option value="rect_pipe">Ống chữ nhật</option>
+          </optgroup>
+          <optgroup label="── Tấm & Bản ──">
+            <option value="plate">Tấm thép / thép bản</option>
+            <option value="chequered">Tấm hoa / gân chống trơn</option>
+            <option value="sheet_galv">Tôn mạ kẽm / tôn màu</option>
+          </optgroup>
+          <optgroup label="── Khác ──">
+            <option value="rebar">Sắt phi / cốt thép</option>
+            <option value="wire_mesh">Lưới thép hàn</option>
+            <option value="custom">Vật liệu khác (nhập trực tiếp kg)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div id="vt-form-area"></div>
+      <div class="field-row" style="margin-top:4px">
+        <div class="field"><label>Đơn giá (₫/kg)</label><input type="number" id="vt-price" value="22000" step="100" min="0"></div>
+        <div class="field"><label>Hao hụt (%)</label><input type="number" id="vt-waste" value="5" min="0" max="30"></div>
+      </div>
+      <div class="field"><label>Ghi chú / Mô tả</label><input type="text" id="vt-note" placeholder="VD: Cột trục A, khung chính..."></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="addMaterial()">➕ Thêm vào danh sách</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🏷️ Thông tin báo giá</div>
+      <div class="field"><label>Tên dự án / đơn hàng</label><input type="text" id="vt-project" placeholder="VD: Nhà xưởng A3 - Công ty XYZ"></div>
+      <div class="field"><label>Khách hàng</label><input type="text" id="vt-client" placeholder="Tên khách hàng"></div>
+      <div class="field-row">
+        <div class="field"><label>Phí gia công (₫)</label><input type="number" id="vt-fab-cost" value="0" step="100000" oninput="renderMaterialOutput()"></div>
+        <div class="field"><label>Phí vận chuyển (₫)</label><input type="number" id="vt-ship-cost" value="0" step="100000" oninput="renderMaterialOutput()"></div>
+      </div>
+      <div class="field"><label>Lợi nhuận / markup (%)</label>
+        <div class="slider-row"><input type="range" id="vt-markup" min="0" max="40" value="15" oninput="renderMaterialOutput();document.getElementById('vt-markup-val').textContent=this.value+'%'"><div class="slider-val" id="vt-markup-val">15%</div></div>
+      </div>
+      <div class="field"><label>Thuế VAT (%)</label>
+        <div class="toggle-group">
+          <button class="toggle-btn active" onclick="setVAT(0,this)">Không VAT</button>
+          <button class="toggle-btn" onclick="setVAT(8,this)">8%</button>
+          <button class="toggle-btn" onclick="setVAT(10,this)">10%</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-right">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;display:flex">
+        <span>📋 Danh sách vật liệu</span>
+        <button class="btn btn-secondary" style="padding:3px 10px;font-size:11px" onclick="clearMaterials()">Xóa tất cả</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="mat-table" id="mat-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Mô tả / Quy cách</th><th>KL net (kg)</th><th>Hao hụt</th><th>KL gross (kg)</th><th>Đơn giá</th><th>Thành tiền (VNĐ)</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="mat-tbody"><tr><td colspan="8" style="text-align:center;color:#475569;padding:20px">Chưa có vật liệu. Thêm từ panel bên trái.</td></tr></tbody>
+          <tfoot id="mat-tfoot"></tfoot>
+        </table>
+      </div>
+    </div>
+    <div id="vt-output"></div>
+  </div>
+</div>
+
+<!-- ══ LỊCH SỬ ══ -->
+<div class="tab-page" id="page-history">
+  <div style="flex:1;padding:16px;overflow-y:auto">
+
+    <!-- Storage control panel -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">🗄️ Lưu trữ dữ liệu</div>
+
+      <!-- Status badge -->
+      <div id="storage-badge" style="
+        display:inline-block;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;
+        border:1px solid #854d0e;background:#1c1a0e;color:#facc15;margin-bottom:10px">
+        ⚠️ Chưa bind file — dùng localStorage
+      </div>
+
+      <div style="font-size:11px;color:#64748b;margin-bottom:10px;line-height:1.6">
+        <b style="color:#94a3b8">Cách hoạt động:</b><br>
+        • <b style="color:#4ade80">Bind file JSON</b> → dữ liệu lưu trên ổ cứng, không mất dù clear cache<br>
+        • <b style="color:#facc15">localStorage</b> → backup tạm thời, mất khi clear browser data<br>
+        • Mỗi lần mở tool, nhấn <b>"Mở file dữ liệu"</b> để kết nối lại file JSON
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="bindDataFile('new')" title="Tạo file JSON mới để lưu lịch sử">
+          🆕 Tạo file dữ liệu mới
+        </button>
+        <button class="btn btn-primary" onclick="bindDataFile('open')" title="Mở file JSON đã có từ trước">
+          📂 Mở file dữ liệu cũ
+        </button>
+        <button class="btn btn-secondary" onclick="exportJSON()" title="Xuất JSON thủ công (mọi browser)">
+          📥 Xuất JSON
+        </button>
+        <button class="btn btn-secondary" onclick="importJSON()" title="Nhập JSON và merge vào dữ liệu hiện tại">
+          📤 Nhập JSON
+        </button>
+        <button class="btn" style="background:#2d0a0a;color:#f87171;border:1px solid #7f1d1d" onclick="clearHistory()">
+          🗑️ Xóa tất cả
+        </button>
+      </div>
+
+      <div style="margin-top:10px;padding:8px 10px;background:#0f1117;border:1px solid #2d3148;border-radius:5px;font-size:10px;color:#475569">
+        💡 <b style="color:#64748b">Lần đầu dùng:</b> Nhấn "Tạo file dữ liệu mới" → chọn thư mục lưu (khuyến nghị: cùng thư mục với file HTML) → đặt tên <code style="color:#94a3b8">LPT_QuoteData.json</code><br>
+        💡 <b style="color:#64748b">Các lần sau:</b> Nhấn "Mở file dữ liệu cũ" → chọn file JSON đó → tất cả báo giá cũ xuất hiện ngay
+      </div>
+    </div>
+
+    <!-- Quote list -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="card-title" style="margin:0">📋 Danh sách báo giá (<span id="quote-count">0</span>)</div>
+    </div>
+    <div id="history-list"></div>
+  </div>
+</div>
+
+</div>
+
+<!-- ══ MOBILE TOTAL BAR (chỉ hiển thị ≤768px) ══ -->
+<div class="mobile-total-bar" id="mobile-total-bar">
+  <div class="mtb-info">
+    <div class="mtb-label" id="mtb-label">TỔNG CHẾ TẠO MÁY</div>
+    <div class="mtb-amount" id="mtb-amount">0 ₫</div>
+  </div>
+  <button class="mtb-jump" onclick="jumpToTotal()">Xem chi tiết ↓</button>
+</div>
+
+<script>
+// ─── UTILS ────────────────────────────────────────────
+const fmt = n => {
+  if(!n||n===0) return '0 ₫';
+  const vnd = Math.round(n * 1_000_000);
+  return vnd.toLocaleString('vi-VN') + ' ₫';
+};
+const fmtKg = n => n>=1000?(n/1000).toFixed(3)+' tấn':n.toFixed(1)+' kg';
+const v = id => parseFloat(document.getElementById(id)?.value)||0;
+const vp = id => v(id)/100;
+let quoteHistory = JSON.parse(localStorage.getItem('lpt_quote_history')||'[]');
+let materials = [];
+let vatPct = 0;
+let kctLaborRate = 12;
+
+// ─── MOBILE TOTAL BAR ─────────────────────────────────
+const tabTotals = {ctm:0, kct:0, tdhoa:0, thietke:0, vattu:0};
+const tabLabels = {ctm:'Chế tạo máy', kct:'Kết cấu thép', tdhoa:'Tự động hoá', thietke:'Thiết kế', vattu:'Vật liệu', history:'Lịch sử'};
+const outputIdToTab = {'ctm-output':'ctm','kct-output':'kct','td-output':'tdhoa','tk-output':'thietke'};
+
+function getActiveTabName() {
+  const a = document.querySelector('.tab.active');
+  return a ? a.id.replace('tab-','') : 'ctm';
+}
+
+function updateMobileTotal() {
+  const lbl = document.getElementById('mtb-label');
+  const amt = document.getElementById('mtb-amount');
+  const btn = document.querySelector('.mtb-jump');
+  if (!lbl || !amt) return;
+  const tab = getActiveTabName();
+  if (tab === 'history') {
+    lbl.textContent = '📋 LỊCH SỬ BÁO GIÁ';
+    amt.textContent = quoteHistory.length + ' báo giá';
+    if (btn) btn.style.display = 'none';
+  } else {
+    lbl.textContent = 'TỔNG ' + (tabLabels[tab]||'').toUpperCase();
+    amt.textContent = fmt(tabTotals[tab] || 0);
+    if (btn) btn.style.display = '';
+  }
+}
+
+function jumpToTotal() {
+  const tab = getActiveTabName();
+  const map = {ctm:'ctm-output', kct:'kct-output', tdhoa:'td-output', thietke:'tk-output', vattu:'vt-output'};
+  const el = document.getElementById(map[tab]);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ─── MATERIAL PROFILES ────────────────────────────────
+// Tất cả kích thước dùng mm; chiều dài thanh/ống dùng mm (len mm → /1e3 → m khi tính kg)
+const profiles = {
+  i_beam:{label:'Thép I / H',fields:[{id:'height',label:'Chiều cao (mm)',val:200},{id:'width',label:'Rộng cánh (mm)',val:100},{id:'tw',label:'Dày bụng (mm)',val:5.5},{id:'tf',label:'Dày cánh (mm)',val:8},{id:'len',label:'Chiều dài (mm)',val:6000},{id:'qty',label:'Số lượng (cây)',val:1}],
+    calc(f){const area=(f.height-2*f.tf)*f.tw+2*f.width*f.tf; return area/1e6*7850*(f.len/1e3)*f.qty;},
+    spec(f){return `I${f.height}×${f.width}×${f.tw}×${f.tf} — L=${f.len}mm × ${f.qty}cây`}},
+  channel:{label:'Thép U / C',fields:[{id:'height',label:'Chiều cao (mm)',val:100},{id:'width',label:'Rộng cánh (mm)',val:50},{id:'tw',label:'Dày bụng (mm)',val:5},{id:'tf',label:'Dày cánh (mm)',val:7.5},{id:'len',label:'Chiều dài (mm)',val:6000},{id:'qty',label:'Số lượng (cây)',val:1}],
+    calc(f){const area=(f.height-2*f.tf)*f.tw+2*f.width*f.tf; return area/1e6*7850*(f.len/1e3)*f.qty;},
+    spec(f){return `U${f.height}×${f.width}×${f.tw}×${f.tf} — L=${f.len}mm × ${f.qty}cây`}},
+  angle:{label:'Thép L (Góc)',fields:[{id:'a',label:'Cạnh A (mm)',val:75},{id:'b',label:'Cạnh B (mm)',val:75},{id:'t',label:'Dày (mm)',val:6},{id:'len',label:'Chiều dài (mm)',val:6000},{id:'qty',label:'Số lượng (cây)',val:1}],
+    calc(f){return (f.a+f.b-f.t)*f.t/1e6*7850*(f.len/1e3)*f.qty;},
+    spec(f){return `L${f.a}×${f.b}×${f.t} — L=${f.len}mm × ${f.qty}cây`}},
+  flat:{label:'Thép Dẹt / F',fields:[{id:'width',label:'Chiều rộng (mm)',val:100},{id:'t',label:'Chiều dày (mm)',val:10},{id:'len',label:'Chiều dài (mm)',val:6000},{id:'qty',label:'Số lượng (cây)',val:1}],
+    calc(f){return f.width*f.t/1e6*7850*(f.len/1e3)*f.qty;},
+    spec(f){return `Flat ${f.width}×${f.t} — L=${f.len}mm × ${f.qty}cây`}},
+  round_bar:{label:'Thép Tròn Đặc',fields:[{id:'d',label:'Đường kính Φ (mm)',val:20},{id:'len',label:'Chiều dài (mm)',val:6000},{id:'qty',label:'Số lượng (thanh)',val:1}],
+    calc(f){return Math.PI*(f.d/2)**2/1e6*7850*(f.len/1e3)*f.qty;},
+    spec(f){return `Φ${f.d} — L=${f.len}mm × ${f.qty}thanh`}},
+  square_bar:{label:'Thép Vuông Đặc',fields:[{id:'a',label:'Cạnh (mm)',val:20},{id:'len',label:'Chiều dài (mm)',val:6000},{id:'qty',label:'Số lượng (thanh)',val:1}],
+    calc(f){return f.a**2/1e6*7850*(f.len/1e3)*f.qty;},
+    spec(f){return `□${f.a} — L=${f.len}mm × ${f.qty}thanh`}},
+  round_pipe:{label:'Ống Tròn',fields:[{id:'od',label:'Đường kính ngoài OD (mm)',val:60},{id:'t',label:'Dày thành (mm)',val:3},{id:'len',label:'Chiều dài (mm)',val:6000},{id:'qty',label:'Số lượng (ống)',val:1}],
+    calc(f){const ri=f.od/2-f.t; return Math.PI*((f.od/2)**2-ri**2)/1e6*7850*(f.len/1e3)*f.qty;},
+    spec(f){return `Ống Φ${f.od}×${f.t} — L=${f.len}mm × ${f.qty}ống`}},
+  square_pipe:{label:'Ống Vuông / Hộp',fields:[{id:'a',label:'Cạnh ngoài (mm)',val:50},{id:'t',label:'Dày thành (mm)',val:3},{id:'len',label:'Chiều dài (mm)',val:6000},{id:'qty',label:'Số lượng (cây)',val:1}],
+    calc(f){const inner=f.a-2*f.t; return (f.a**2-inner**2)/1e6*7850*(f.len/1e3)*f.qty;},
+    spec(f){return `Hộp □${f.a}×${f.a}×${f.t} — L=${f.len}mm × ${f.qty}cây`}},
+  rect_pipe:{label:'Ống Chữ Nhật',fields:[{id:'w',label:'Chiều rộng (mm)',val:100},{id:'h',label:'Chiều cao (mm)',val:50},{id:'t',label:'Dày thành (mm)',val:3},{id:'len',label:'Chiều dài (mm)',val:6000},{id:'qty',label:'Số lượng (cây)',val:1}],
+    calc(f){const iw=f.w-2*f.t,ih=f.h-2*f.t; return (f.w*f.h-iw*ih)/1e6*7850*(f.len/1e3)*f.qty;},
+    spec(f){return `Hộp ${f.w}×${f.h}×${f.t} — L=${f.len}mm × ${f.qty}cây`}},
+  plate:{label:'Tấm Thép / Thép Bản',fields:[{id:'w',label:'Chiều rộng (mm)',val:1500},{id:'l',label:'Chiều dài (mm)',val:6000},{id:'t',label:'Chiều dày (mm)',val:6},{id:'qty',label:'Số lượng (tấm)',val:1}],
+    calc(f){return f.w*f.l*f.t/1e9*7850*f.qty;},
+    spec(f){return `Tấm ${f.w}×${f.l}×${f.t}mm × ${f.qty}tấm`}},
+  chequered:{label:'Tấm Hoa / Gân',fields:[{id:'w',label:'Chiều rộng (mm)',val:1200},{id:'l',label:'Chiều dài (mm)',val:2400},{id:'t',label:'Dày nền (mm)',val:4},{id:'qty',label:'Số lượng (tấm)',val:1}],
+    calc(f){return f.w*f.l*f.t/1e9*7850*1.1*f.qty;},
+    spec(f){return `Tấm hoa ${f.w}×${f.l}×${f.t}mm × ${f.qty}tấm`}},
+  sheet_galv:{label:'Tôn Mạ Kẽm / Tôn Màu',fields:[{id:'w',label:'Chiều rộng (mm)',val:1200},{id:'l',label:'Chiều dài (mm)',val:3000},{id:'t',label:'Dày (mm)',val:0.45},{id:'qty',label:'Số lượng (tấm)',val:1}],
+    calc(f){return f.w*f.l*f.t/1e9*7850*f.qty;},
+    spec(f){return `Tôn ${f.w}×${f.l}×${f.t}mm × ${f.qty}tấm`}},
+  rebar:{label:'Sắt Phi / Cốt Thép',fields:[{id:'d',label:'Đường kính Φ (mm)',val:12},{id:'len',label:'Chiều dài (mm)',val:11700},{id:'qty',label:'Số lượng (thanh)',val:1}],
+    calc(f){return (f.d**2/162)*(f.len/1e3)*f.qty;},
+    spec(f){return `Φ${f.d} — L=${f.len}mm × ${f.qty}thanh`}},
+  wire_mesh:{label:'Lưới Thép Hàn',fields:[{id:'w',label:'Rộng lưới (mm)',val:2350},{id:'l',label:'Dài lưới (mm)',val:6000},{id:'dw',label:'Φ dây (mm)',val:6},{id:'sp',label:'Khoảng cách ô (mm)',val:150},{id:'qty',label:'Số tấm',val:1}],
+    calc(f){const nx=Math.floor(f.w/f.sp)+1,ny=Math.floor(f.l/f.sp)+1,kpw=f.dw**2/162; return(nx*(f.l/1000)*kpw+ny*(f.w/1000)*kpw)*f.qty;},
+    spec(f){return `Lưới ${f.w}×${f.l}mm, Φ${f.dw}@${f.sp} × ${f.qty}tấm`}},
+  custom:{label:'Vật liệu khác',fields:[{id:'kg',label:'Khối lượng (kg)',val:0},{id:'qty',label:'Số lượng',val:1}],
+    calc(f){return f.kg*f.qty;},
+    spec(f){return `${f.kg*f.qty} kg`}}
+};
+
+function updateVTForm(){
+  const type=document.getElementById('vt-mattype').value;
+  const p=profiles[type];
+  document.getElementById('vt-form-area').innerHTML=p.fields.map(f=>`
+    <div class="field-row" style="margin-bottom:5px"><div class="field"><label>${f.label}</label><input type="number" id="vtf-${f.id}" value="${f.val}" min="0" step="any"></div></div>`).join('');
+}
+
+function addMaterial(){
+  const type=document.getElementById('vt-mattype').value;
+  const p=profiles[type];
+  const f={};
+  p.fields.forEach(fld=>{f[fld.id]=parseFloat(document.getElementById('vtf-'+fld.id)?.value)||0;});
+  const netKg=p.calc(f);
+  const wastePct=v('vt-waste')/100;
+  const grossKg=netKg*(1+wastePct);
+  const priceD=v('vt-price');          // đơn giá theo đồng/kg
+  const costM=grossKg*priceD/1_000_000; // → triệu đồng
+  const note=document.getElementById('vt-note').value||p.label;
+  materials.push({type,label:p.label,spec:p.spec(f),note,netKg,wastePct,grossKg,priceD,costM});
+  document.getElementById('vt-note').value='';
+  renderMaterialTable();
+  renderMaterialOutput();
+}
+
+function deleteMaterial(i){materials.splice(i,1);renderMaterialTable();renderMaterialOutput();}
+function clearMaterials(){materials=[];renderMaterialTable();renderMaterialOutput();}
+
+function renderMaterialTable(){
+  const tbody=document.getElementById('mat-tbody'),tfoot=document.getElementById('mat-tfoot');
+  if(!materials.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#475569;padding:20px">Chưa có vật liệu.</td></tr>';tfoot.innerHTML='';return;}
+  const tNetKg=materials.reduce((s,m)=>s+m.netKg,0),tGrossKg=materials.reduce((s,m)=>s+m.grossKg,0),tCostM=materials.reduce((s,m)=>s+m.costM,0);
+  tbody.innerHTML=materials.map((m,i)=>`<tr>
+    <td style="color:#64748b">${i+1}</td>
+    <td><div style="color:#e2e8f0;font-weight:500">${m.note}</div><div style="color:#475569;font-size:10px">${m.spec}</div></td>
+    <td style="text-align:right">${m.netKg.toFixed(1)}</td>
+    <td style="text-align:center;color:#f59e0b">${(m.wastePct*100).toFixed(0)}%</td>
+    <td style="text-align:right;font-weight:600">${m.grossKg.toFixed(1)}</td>
+    <td style="text-align:right">${Math.round(m.priceD).toLocaleString('vi-VN')} ₫/kg</td>
+    <td style="text-align:right;color:#60a5fa;font-weight:600">${fmt(m.costM)}</td>
+    <td><button class="del-btn" onclick="deleteMaterial(${i})">✕</button></td>
+  </tr>`).join('');
+  tfoot.innerHTML=`<tr class="mat-total-row">
+    <td colspan="2" style="padding:6px 8px">📊 TỔNG (${materials.length} hạng mục)</td>
+    <td style="text-align:right">${tNetKg.toFixed(1)}</td><td></td>
+    <td style="text-align:right">${tGrossKg.toFixed(1)}</td><td></td>
+    <td style="text-align:right">${fmt(tCostM)}</td><td></td>
+  </tr>`;
+}
+
+function setVAT(pct,btn){
+  vatPct=pct;
+  document.querySelectorAll('#page-vattu .toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMaterialOutput();
+}
+
+function renderMaterialOutput(){
+  const matCostM=materials.reduce((s,m)=>s+m.costM,0);
+  const tNetKg=materials.reduce((s,m)=>s+m.netKg,0),tGrossKg=materials.reduce((s,m)=>s+m.grossKg,0);
+  const fabCost=v('vt-fab-cost')/1_000_000,shipCost=v('vt-ship-cost')/1_000_000,markup=v('vt-markup')/100;
+  const baseCost=matCostM+fabCost+shipCost,profitM=baseCost*markup;
+  const subtotal=baseCost+profitM,vatM=subtotal*(vatPct/100),total=subtotal+vatM;
+  tabTotals['vattu']=total;updateMobileTotal();
+  const marginPct=baseCost>0?(profitM/total*100):0;
+  const marginColor=marginPct>=20?'#10b981':marginPct>=12?'#f59e0b':'#ef4444';
+  const avgKg=tGrossKg>0?(total*1_000_000/tGrossKg):0; // ₫/kg
+  document.getElementById('vt-output').innerHTML=!materials.length?
+    `<div class="card" style="color:#475569;text-align:center;padding:30px">Thêm vật liệu từ panel bên trái để xem tổng hợp báo giá.</div>`:
+  `<div class="total-bar">
+    <div><div class="total-label">TỔNG GIÁ BÁO KHÁCH HÀNG${vatPct>0?' (đã VAT '+vatPct+'%)':''}</div>
+    <div style="font-size:11px;color:#475569;margin-top:2px">${document.getElementById('vt-project')?.value||'—'} | ${tGrossKg.toFixed(1)} kg gross</div></div>
+    <div style="text-align:right"><div class="total-amount">${fmt(total)}</div></div>
+  </div>
+  <div class="card"><div class="card-title">📊 Chỉ số nhanh</div><div class="info-grid">
+    <div class="info-box"><div class="info-box-label">Khối lượng Net / Gross</div><div class="info-box-value c-blue">${fmtKg(tNetKg)} / ${fmtKg(tGrossKg)}</div></div>
+    <div class="info-box"><div class="info-box-label">Đơn giá bình quân</div><div class="info-box-value c-purple">${Math.round(avgKg).toLocaleString('vi-VN')} ₫/kg</div></div>
+    <div class="info-box"><div class="info-box-label">Biên lợi nhuận</div><div class="info-box-value" style="color:${marginColor}">${marginPct.toFixed(1)}%</div><div class="margin-bar"><div class="margin-fill" style="width:${Math.min(marginPct,40)/40*100}%;background:${marginColor}"></div></div></div>
+    <div class="info-box"><div class="info-box-label">Đơn giá/tấn (bán KH)</div><div class="info-box-value c-green">${Math.round(avgKg*1000).toLocaleString('vi-VN')} ₫/T</div></div>
+  </div></div>
+  <div class="card"><div class="card-title">🧾 Tổng hợp chi phí</div>
+    <div class="cost-section"><div class="cost-section-header" onclick="toggleSection('vt-s1')">
+      <div class="cost-section-title">🔩 Chi phí vật liệu (${materials.length} hạng mục)</div><div class="cost-section-amount c-blue">${fmt(matCostM)}</div>
+    </div><div class="cost-section-body" id="vt-s1">${materials.map(m=>`<div class="cost-row"><span class="cost-row-label">${m.note} — ${m.spec}</span><span class="cost-row-value">${fmt(m.costM)}</span></div>`).join('')}</div></div>
+    ${fabCost>0?`<div class="cost-row" style="padding:6px 8px;border:1px solid #2d3148;border-radius:5px;margin-top:2px"><span class="cost-row-label">⚙️ Phí gia công</span><span class="cost-row-value">${fmt(fabCost)}</span></div>`:''}
+    ${shipCost>0?`<div class="cost-row" style="padding:6px 8px;border:1px solid #2d3148;border-radius:5px;margin-top:2px"><span class="cost-row-label">🚚 Vận chuyển</span><span class="cost-row-value">${fmt(shipCost)}</span></div>`:''}
+    <div class="cost-row" style="padding:6px 8px;border:1px solid #2d3148;border-radius:5px;margin-top:2px"><span class="cost-row-label" style="font-weight:600;color:#94a3b8">Tổng giá thành</span><span class="cost-row-value" style="font-weight:700;color:#e2e8f0">${fmt(baseCost)}</span></div>
+    <div class="cost-row" style="padding:6px 8px;border:1px solid #2d3148;border-radius:5px;margin-top:2px"><span class="cost-row-label">💰 Lợi nhuận (${v('vt-markup')}%)</span><span class="cost-row-value c-green">${fmt(profitM)}</span></div>
+    ${vatM>0?`<div class="cost-row" style="padding:6px 8px;border:1px solid #2d3148;border-radius:5px;margin-top:2px"><span class="cost-row-label">🏛️ VAT ${vatPct}%</span><span class="cost-row-value">${fmt(vatM)}</span></div>`:''}
+  </div>
+  <div class="card"><div class="card-title">💾 Lưu & Xuất</div><div class="btn-row">
+    <button class="btn btn-success" onclick="saveQuote('Vật Liệu','${document.getElementById('vt-project')?.value||'Báo giá VL'}',${total},null)">💾 Lưu lịch sử</button>
+    <button class="btn btn-pdf" onclick="exportPDF('vattu',${total},${baseCost},${marginPct.toFixed(1)},${tGrossKg.toFixed(1)})">📄 Xuất PDF</button>
+    <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('Báo giá VL: ${fmt(total)} | KL: ${tGrossKg.toFixed(1)} kg | LN: ${marginPct.toFixed(1)}%').then(()=>alert('Đã copy!'))">📋 Copy</button>
+  </div></div>`;
+}
+
+// ─── QUOTE OUTPUT RENDERER ────────────────────────────
+function renderOutput(containerId,data){
+  const{name,qty,sections,total,cost,margin,risk,chips}=data;
+  // Cập nhật tổng giá cho mobile bar
+  const tk=outputIdToTab[containerId];
+  if(tk){tabTotals[tk]=total*(qty||1);updateMobileTotal();}
+  const mc=margin>=20?'#10b981':margin>=12?'#f59e0b':'#ef4444';
+  const rt=risk<=5?'<span class="risk-tag risk-low">Thấp</span>':risk<=12?'<span class="risk-tag risk-med">TB</span>':'<span class="risk-tag risk-high">Cao</span>';
+  const tabId=containerId.replace('-output','');
+  document.getElementById(containerId).innerHTML=`
+  <div class="total-bar">
+    <div><div class="total-label">TỔNG GIÁ BÁO${qty>1?' (×'+qty+')':''}</div><div style="font-size:11px;color:#475569;margin-top:2px">${name||'—'}</div></div>
+    <div style="text-align:right"><div class="total-amount">${fmt(total*qty)}</div>${qty>1?`<div class="total-sub">Đơn giá: ${fmt(total)}</div>`:''}</div>
+  </div>
+  <div class="card"><div class="card-title">📊 Chỉ số nhanh</div><div class="info-grid">
+    <div class="info-box"><div class="info-box-label">Giá thành trực tiếp</div><div class="info-box-value c-blue">${fmt(cost)}</div></div>
+    <div class="info-box"><div class="info-box-label">Biên lợi nhuận</div><div class="info-box-value" style="color:${mc}">${margin.toFixed(1)}%</div><div class="margin-bar"><div class="margin-fill" style="width:${Math.min(margin,40)/40*100}%;background:${mc}"></div></div></div>
+    <div class="info-box"><div class="info-box-label">Mức rủi ro</div><div class="info-box-value">${rt}</div></div>
+    <div class="info-box"><div class="info-box-label">Lợi nhuận ròng</div><div class="info-box-value c-green">${fmt((total-cost)*qty)}</div></div>
+  </div></div>
+  <div class="card"><div class="card-title">🔍 Chi tiết cấu phần (click để mở)</div>
+    ${sections.map((s,i)=>`<div class="cost-section"><div class="cost-section-header" onclick="toggleSection('${containerId}-s${i}')"><div class="cost-section-title">${s.title}</div><div class="cost-section-amount" style="color:${s.color||'#e2e8f0'}">${fmt(s.total)}</div></div><div class="cost-section-body" id="${containerId}-s${i}">${s.rows.map(r=>`<div class="cost-row"><span class="cost-row-label">${r.label}</span><span class="cost-row-value">${fmt(r.value)}</span></div>`).join('')}</div></div>`).join('')}
+  </div>
+  ${chips.length?`<div class="card"><div class="card-title">⚡ Thông số chốt deal</div><div class="chips">${chips.map(c=>`<div class="chip">${c.icon} ${c.label}: <span>${c.value}</span></div>`).join('')}</div></div>`:''}
+  <div class="card"><div class="card-title">💾 Lưu & Xuất</div><div class="btn-row">
+    <button class="btn btn-success" onclick="saveQuote('${containerId}','${(name||'').replace(/'/g,"\\'")}',${total*qty},null)">💾 Lưu lịch sử</button>
+    <button class="btn btn-pdf" onclick="exportPDF('${tabId}',${total*qty},${cost*qty},${margin.toFixed(1)},null)">📄 Xuất PDF</button>
+    <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('Báo giá: ${(name||'').replace(/'/g,"\\'")} = ${fmt(total*qty)} | LN: ${margin.toFixed(1)}%').then(()=>alert('Đã copy!'))">📋 Copy</button>
+  </div></div>`;
+}
+function toggleSection(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');}
+
+// ─── CALCULATIONS ─────────────────────────────────────
+function calcCTM(){
+  const steelM=(v('ctm-steel-kg')*v('ctm-steel-price'))/1_000_000;
+  const mechM=v('ctm-mech')/1_000_000,elecM=v('ctm-elec')/1_000_000,mainMat=steelM+mechM+elecM,auxMat=mainMat*vp('ctm-aux'),totalMat=mainMat+auxMat;
+  const laborM=(v('ctm-labor-days')*v('ctm-labor-rate'))/1_000_000,subM=v('ctm-sub')/1_000_000,treatM=v('ctm-treat')/1_000_000,machineM=laborM*vp('ctm-machine');
+  const directCost=totalMat+laborM+subM+treatM+machineM,ohM=directCost*vp('ctm-oh'),shipM=v('ctm-ship')/1_000_000,installM=v('ctm-install')/1_000_000;
+  const baseCost=directCost+ohM+shipM+installM,complex=parseFloat(document.getElementById('ctm-complex').value),adjCost=baseCost*complex;
+  const total=adjCost*(1+vp('ctm-profit')+vp('ctm-risk')),qty=v('ctm-qty')||1;
+  renderOutput('ctm-output',{name:document.getElementById('ctm-name').value,qty,total,cost:adjCost,margin:(total-adjCost)/total*100,risk:v('ctm-risk'),
+    sections:[
+      {title:'🔩 Vật tư & Nguyên liệu',total:totalMat,color:'#60a5fa',rows:[{label:'Thép kết cấu',value:steelM},{label:'Chi tiết cơ khí',value:mechM},{label:'Điện & Sensor',value:elecM},{label:'Vật tư phụ',value:auxMat}]},
+      {title:'👷 Nhân công & Gia công',total:laborM+subM+treatM+machineM,color:'#a78bfa',rows:[{label:'Nhân công',value:laborM},{label:'Gia công ngoài',value:subM},{label:'Nhiệt luyện/mạ',value:treatM},{label:'Máy móc/khấu hao',value:machineM}]},
+      {title:'⚙️ Gián tiếp & Khác',total:ohM+shipM+installM+(adjCost-baseCost),color:'#f59e0b',rows:[{label:'Quản lý OH',value:ohM},{label:'Vận chuyển',value:shipM},{label:'Lắp đặt',value:installM},{label:'Hệ số phức tạp (×'+complex+')',value:adjCost-baseCost}]},
+      {title:'💰 LN & Dự phòng',total:total-adjCost,color:'#10b981',rows:[{label:'Lợi nhuận',value:adjCost*vp('ctm-profit')},{label:'Dự phòng rủi ro',value:adjCost*vp('ctm-risk')}]}
+    ],
+    chips:[{icon:'⚙️',label:'Phức tạp',value:document.getElementById('ctm-complex').options[document.getElementById('ctm-complex').selectedIndex].text},{icon:'📦',label:'VT%',value:(totalMat/total*100).toFixed(0)+'%'},{icon:'👷',label:'NC%',value:(laborM/total*100).toFixed(0)+'%'}]
+  });
+}
+
+function calcKCT(){
+  const tons=v('kct-tons'),steelPriceM=v('kct-steel-price')/1_000_000,steelM=tons*steelPriceM*(1+vp('kct-waste'));
+  const boltM=v('kct-bolt')/1_000_000,paintM=v('kct-paint')/1_000_000,fabF=parseFloat(document.getElementById('kct-fab').value),typeF=parseFloat(document.getElementById('kct-type').value);
+  const laborDays=tons*kctLaborRate*fabF,laborM=(laborDays*v('kct-labor-rate'))/1_000_000,erectM=(v('kct-erect-labor')*v('kct-labor-rate'))/1_000_000;
+  const directCost=(steelM+boltM+paintM+laborM+erectM)*typeF,ohM=directCost*vp('kct-oh'),shipM=v('kct-ship')/1_000_000,designM=v('kct-design')/1_000_000;
+  const baseCost=directCost+ohM+shipM+designM,total=baseCost*(1+vp('kct-profit')+vp('kct-risk'));
+  renderOutput('kct-output',{name:document.getElementById('kct-name').value,qty:1,total,cost:baseCost,margin:(total-baseCost)/total*100,risk:v('kct-risk'),
+    sections:[
+      {title:'🔩 Vật liệu thép',total:steelM,color:'#60a5fa',rows:[{label:'Thép kết cấu ('+tons.toFixed(1)+'T)',value:tons*steelPriceM},{label:'Hao hụt',value:tons*steelPriceM*vp('kct-waste')}]},
+      {title:'🔧 Phụ kiện & Hoàn thiện',total:boltM+paintM,color:'#a78bfa',rows:[{label:'Bu lông, neo',value:boltM},{label:'Sơn chống rỉ',value:paintM}]},
+      {title:'👷 Nhân công',total:laborM+erectM,color:'#f59e0b',rows:[{label:'Gia công tại xưởng ('+laborDays.toFixed(0)+' công)',value:laborM},{label:'Lắp dựng',value:erectM}]},
+      {title:'⚙️ Gián tiếp',total:ohM+shipM+designM,color:'#f59e0b',rows:[{label:'OH quản lý',value:ohM},{label:'Vận chuyển',value:shipM},{label:'Thiết kế/BV',value:designM}]},
+      {title:'💰 LN & Dự phòng',total:total-baseCost,color:'#10b981',rows:[{label:'Lợi nhuận',value:baseCost*vp('kct-profit')},{label:'Dự phòng',value:baseCost*vp('kct-risk')}]}
+    ],
+    chips:[{icon:'⚖️',label:'KL',value:tons.toFixed(1)+' tấn'},{icon:'💵',label:'Đg/tấn',value:tons>0?Math.round(total/tons*1e6).toLocaleString('vi-VN')+' ₫/T':'—'},{icon:'👷',label:'NC gia công',value:laborDays.toFixed(0)+' công'}]
+  });
+}
+function setKCTRate(r,btn){kctLaborRate=r;document.querySelectorAll('#page-kct .toggle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');calcKCT();}
+
+function calcTD(){
+  const plcM=v('td-plc')/1_000_000,hmiM=v('td-hmi')/1_000_000,drivesM=v('td-drives')/1_000_000,sensorsM=v('td-sensors')/1_000_000,panelM=v('td-panel')/1_000_000,mechM=v('td-mech')/1_000_000;
+  const hwTotal=plcM+hmiM+drivesM+sensorsM+panelM+mechM,logM=hwTotal*vp('td-logistics');
+  const er=v('td-eng-rate'),plcProgM=(v('td-plc-prog')*er)/1_000_000,hmiProgM=(v('td-hmi-prog')*er)/1_000_000,integM=(v('td-integ')*er)/1_000_000;
+  const ir=v('td-install-rate'),installM=(v('td-install-days')*ir)/1_000_000,trialM=(v('td-trial')*ir*0.8)/1_000_000,travelM=v('td-travel')/1_000_000;
+  const directCost=hwTotal+logM+plcProgM+hmiProgM+integM+installM+trialM+travelM;
+  const warM=directCost*vp('td-warranty'),baseCost=directCost+warM,total=baseCost*(1+vp('td-profit')+vp('td-risk'));
+  renderOutput('td-output',{name:document.getElementById('td-name').value,qty:1,total,cost:baseCost,margin:(total-baseCost)/total*100,risk:v('td-risk'),
+    sections:[
+      {title:'🤖 Phần cứng & Thiết bị',total:hwTotal+logM,color:'#60a5fa',rows:[{label:'PLC/Controller',value:plcM},{label:'HMI/Panel',value:hmiM},{label:'Biến tần/Servo',value:drivesM},{label:'Sensor/IO',value:sensorsM},{label:'Tủ điện/cáp',value:panelM},{label:'Cơ khí/khung',value:mechM},{label:'Logistics',value:logM}]},
+      {title:'💻 Lập trình & Tích hợp',total:plcProgM+hmiProgM+integM,color:'#a78bfa',rows:[{label:'Lập trình PLC',value:plcProgM},{label:'Lập trình HMI',value:hmiProgM},{label:'Tích hợp Debug',value:integM}]},
+      {title:'🔧 Lắp đặt & Commissioning',total:installM+trialM+travelM,color:'#f59e0b',rows:[{label:'Lắp đặt tại CT',value:installM},{label:'Vận hành thử',value:trialM},{label:'Công tác phí',value:travelM}]},
+      {title:'🛡️ Bảo hành & Dự phòng',total:warM+baseCost*vp('td-risk'),color:'#f59e0b',rows:[{label:'Quỹ bảo hành',value:warM},{label:'Dự phòng tích hợp',value:baseCost*vp('td-risk')}]},
+      {title:'💰 Lợi nhuận',total:baseCost*vp('td-profit'),color:'#10b981',rows:[{label:'Lợi nhuận dự án',value:baseCost*vp('td-profit')}]}
+    ],
+    chips:[{icon:'🤖',label:'HW%',value:((hwTotal+logM)/total*100).toFixed(0)+'%'},{icon:'💻',label:'KT%',value:((plcProgM+hmiProgM+integM)/total*100).toFixed(0)+'%'}]
+  });
+}
+
+function calcTK(){
+  const sm=(v('tk-senior')*v('tk-senior-rate'))/1_000_000,jm=(v('tk-junior')*v('tk-junior-rate'))/1_000_000,tm=(v('tk-tech')*v('tk-tech-rate'))/1_000_000;
+  const labor=sm+jm+tm,meet=labor*vp('tk-meeting'),oh=labor*vp('tk-oh'),rev=labor*vp('tk-revision');
+  const printM=v('tk-print')/1_000_000,swM=v('tk-sw')/1_000_000,surveyM=v('tk-survey')/1_000_000,travelM=v('tk-travel')/1_000_000;
+  const direct=labor+meet+oh+printM+swM+surveyM+travelM+rev;
+  const total=direct*(1+vp('tk-profit')),days=v('tk-senior')+v('tk-junior')+v('tk-tech');
+  renderOutput('tk-output',{name:document.getElementById('tk-name').value,qty:1,total,cost:direct,margin:(total-direct)/total*100,risk:5,
+    sections:[
+      {title:'👨‍💻 Nhân lực thiết kế',total:labor+meet+rev,color:'#60a5fa',rows:[{label:'Senior ('+v('tk-senior').toFixed(0)+' ngày)',value:sm},{label:'Mid/junior ('+v('tk-junior').toFixed(0)+' ngày)',value:jm},{label:'Draftsman ('+v('tk-tech').toFixed(0)+' ngày)',value:tm},{label:'Họp & review',value:meet},{label:'Revision/chỉnh sửa',value:rev}]},
+      {title:'⚙️ Chi phí vận hành',total:oh+printM+swM+surveyM+travelM,color:'#f59e0b',rows:[{label:'Overhead',value:oh},{label:'In bản vẽ',value:printM},{label:'Phần mềm',value:swM},{label:'Khảo sát',value:surveyM},{label:'Công tác phí',value:travelM}]},
+      {title:'💰 Lợi nhuận',total:total-direct,color:'#10b981',rows:[{label:'Lợi nhuận dịch vụ',value:total-direct}]}
+    ],
+    chips:[{icon:'📅',label:'Tổng ngày',value:days.toFixed(0)+' ngày'},{icon:'💵',label:'Đg blended',value:days>0?Math.round(total/days*1e6).toLocaleString('vi-VN')+' ₫/ngày':'—'}]
+  });
+}
+
+// ─── PDF EXPORT ───────────────────────────────────────
+function exportPDF(tab,total,cost,margin,extraKg){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,M=14;
+  let y=0;
+  const dateStr=new Date().toLocaleDateString('vi-VN');
+  // PDF-safe formatters: avoid ₫ glyph and vi-VN locale — both break jsPDF Helvetica
+  const fmtPDF = n => {
+    if(!n||n===0) return '0 VND';
+    const vnd = Math.round((n||0) * 1_000_000);
+    return String(vnd).replace(/\B(?=(\d{3})+(?!\d))/g,',') + ' VND';
+  };
+  const numPDF = n => String(Math.round(n||0)).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+
+  // Header
+  doc.setFillColor(20,23,34);doc.rect(0,0,W,32,'F');
+  doc.setFillColor(41,98,235);doc.rect(0,28,W,2,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(17);doc.setFont('helvetica','bold');
+  doc.text('BAO GIA NHANH — LPT INDUSTRIAL',M,13);
+  doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(100,116,139);
+  doc.text('Che tao may  |  Ket cau thep  |  Tu dong hoa  |  Thiet ke  |  Vat lieu',M,21);
+  doc.text('Ngay: '+dateStr,W-M-38,13);doc.text('Tai lieu bao gia nhanh',W-M-38,21);
+  y=40;
+
+  // Title
+  const tabNames={ctm:'BAO GIA CHE TAO MAY',kct:'BAO GIA KET CAU THEP',tdhoa:'BAO GIA TU DONG HOA',thietke:'BAO GIA THIET KE',vattu:'BAO GIA VAT LIEU'};
+  const nameEls={ctm:'ctm-name',kct:'kct-name',tdhoa:'td-name',thietke:'tk-name',vattu:'vt-project'};
+  const projName=document.getElementById(nameEls[tab])?.value||'—';
+  const clientName=tab==='vattu'?document.getElementById('vt-client')?.value:'';
+
+  doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(96,165,250);
+  doc.text(tabNames[tab]||'BAO GIA',M,y);y+=7;
+  doc.setFontSize(9.5);doc.setFont('helvetica','normal');doc.setTextColor(226,232,240);
+  doc.text('Han muc: '+projName,M,y);y+=5.5;
+  if(clientName){doc.text('Khach hang: '+clientName,M,y);y+=5.5;}
+  y+=3;
+
+  // KPI boxes
+  const boxes=[
+    {l:'GIA BAO KHACH HANG',v:fmtPDF(total),c:[96,165,250]},
+    {l:'GIA THANH NOI BO',v:fmtPDF(cost),c:[226,232,240]},
+    {l:'BIEN LOI NHUAN',v:parseFloat(margin).toFixed(1)+'%',c:[16,185,129]},
+    {l:tab==='vattu'?'KHOI LUONG GROSS':'LOI NHUAN RONG',v:tab==='vattu'?parseFloat(extraKg||0).toFixed(1)+' kg':fmtPDF(total-cost),c:[167,139,250]}
+  ];
+  const bw=(W-2*M)/4-2;
+  boxes.forEach((b,i)=>{
+    const bx=M+i*(bw+2);
+    doc.setFillColor(26,29,39);doc.roundedRect(bx,y,bw,17,2,2,'F');
+    doc.setDrawColor(41,98,235);doc.setLineWidth(0.3);doc.roundedRect(bx,y,bw,17,2,2,'S');
+    doc.setFontSize(6.5);doc.setFont('helvetica','bold');doc.setTextColor(100,116,139);
+    doc.text(b.l,bx+2,y+5.5);
+    doc.setFontSize(9.5);doc.setFont('helvetica','bold');doc.setTextColor(...b.c);
+    doc.text(b.v,bx+2,y+13.5);
+  });
+  y+=22;
+
+  // Material detail table (vattu only)
+  if(tab==='vattu'&&materials.length){
+    if(y>250){doc.addPage();y=20;}
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(226,232,240);
+    doc.text('DANH SACH VAT LIEU CHI TIET',M,y);y+=4;
+    const cols=[{t:'#',w:7},{t:'Mo ta',w:52},{t:'KL net(kg)',w:20},{t:'Hao hut',w:12},{t:'KL gross(kg)',w:21},{t:'Don gia(d/kg)',w:28},{t:'Thanh tien(VND)',w:42}];
+    doc.setFillColor(15,17,23);doc.rect(M,y,W-2*M,7,'F');
+    let cx=M;
+    cols.forEach(c=>{doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(100,116,139);doc.text(c.t,cx+1,y+4.8);cx+=c.w;});
+    y+=7;
+    materials.forEach((m,i)=>{
+      if(y>270){doc.addPage();y=20;}
+      if(i%2===0){doc.setFillColor(26,29,39);doc.rect(M,y,W-2*M,9,'F');}
+      doc.setDrawColor(45,49,72);doc.setLineWidth(0.1);doc.line(M,y+9,W-M,y+9);
+      cx=M;
+      const cells=[String(i+1),m.note.substring(0,30)+(m.note.length>30?'...':''),m.netKg.toFixed(1),(m.wastePct*100).toFixed(0)+'%',m.grossKg.toFixed(1),numPDF(m.priceD),fmtPDF(m.costM)];
+      cells.forEach((cell,ci)=>{
+        doc.setFontSize(ci===1?7:8);doc.setFont('helvetica','normal');
+        doc.setTextColor(ci===6?96:ci===0?148:ci===1?226:148,ci===6?165:ci===0?163:ci===1?232:163,ci===6?250:ci===0?139:ci===1?240:139);
+        doc.text(cell,cx+1,y+6);cx+=cols[ci].w;
+      });
+      y+=9;
+    });
+    // Total row
+    const tn=materials.reduce((s,m)=>s+m.netKg,0),tg=materials.reduce((s,m)=>s+m.grossKg,0),tc=materials.reduce((s,m)=>s+m.costM,0);
+    doc.setFillColor(41,98,235);doc.rect(M,y,W-2*M,8,'F');
+    doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+    doc.text('TONG ('+materials.length+' hang muc)',M+1,y+5.5);
+    cx=M+7+62;
+    [tn.toFixed(1),'',tg.toFixed(1),'',fmtPDF(tc)].forEach((val,ci)=>{doc.text(val,cx+1,y+5.5);cx+=[20,12,21,28,42][ci];});
+    y+=12;
+  }
+
+  // Cost breakdown
+  if(y>250){doc.addPage();y=20;}
+  doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(226,232,240);
+  doc.text('TONG HOP CHI PHI',M,y);y+=4;
+
+  const brows=[];
+  if(tab==='vattu'){
+    const mc=materials.reduce((s,m)=>s+m.costM,0),fab=v('vt-fab-cost')/1_000_000,ship=v('vt-ship-cost')/1_000_000,mk=v('vt-markup')/100;
+    const bc=mc+fab+ship,pf=bc*mk,sub=bc+pf,vt=sub*(vatPct/100);
+    brows.push({l:'Chi phi vat lieu ('+materials.length+' hang muc)',v:fmtPDF(mc)});
+    if(fab)brows.push({l:'Phi gia cong',v:fmtPDF(fab)});
+    if(ship)brows.push({l:'Van chuyen',v:fmtPDF(ship)});
+    brows.push({l:'TONG GIA THANH',v:fmtPDF(bc),bold:true});
+    brows.push({l:'Loi nhuan ('+v('vt-markup')+'%)',v:fmtPDF(pf),vc:[16,185,129]});
+    if(vt)brows.push({l:'Thue VAT ('+vatPct+'%)',v:fmtPDF(vt)});
+  }else{
+    brows.push({l:'Gia thanh (truc tiep + gian tiep)',v:fmtPDF(cost)});
+    brows.push({l:'Loi nhuan & Du phong',v:fmtPDF(total-cost),vc:[16,185,129]});
+  }
+  brows.push({l:'TONG GIA BAO KHACH HANG',v:fmtPDF(total),bold:true,c:[96,165,250],vc:[96,165,250]});
+  brows.push({l:'Bien loi nhuan thuc te',v:parseFloat(margin).toFixed(1)+'%'});
+
+  brows.forEach((r,i)=>{
+    if(y>270){doc.addPage();y=20;}
+    doc.setFillColor(i%2===0?26:20,i%2===0?29:23,i%2===0?39:34);doc.rect(M,y,W-2*M,8,'F');
+    doc.setFontSize(r.bold?8.5:8);doc.setFont('helvetica',r.bold?'bold':'normal');
+    doc.setTextColor(r.c?r.c[0]:148,r.c?r.c[1]:163,r.c?r.c[2]:139);doc.text(r.l,M+2,y+5.5);
+    doc.setTextColor(r.vc?r.vc[0]:226,r.vc?r.vc[1]:232,r.vc?r.vc[2]:240);doc.text(r.v,W-M-2,y+5.5,{align:'right'});
+    y+=8;
+  });
+  y+=8;
+
+  // Notes
+  if(y>252){doc.addPage();y=20;}
+  doc.setFillColor(28,26,14);doc.rect(M,y,W-2*M,26,'F');
+  doc.setDrawColor(133,77,14);doc.setLineWidth(0.3);doc.rect(M,y,W-2*M,26,'S');
+  doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(202,138,4);
+  doc.text('LUU Y / DIEU KIEN BAO GIA:',M+3,y+6);
+  doc.setFont('helvetica','normal');doc.setTextColor(180,120,0);
+  ['• Bao gia co hieu luc 15 ngay ke tu ngay lap.','• Gia tren chua bao gom thue VAT (tru khi co ghi ro).','• Khoi luong chinh xac xac dinh sau khi co ban ve chi tiet.','• Thay doi thiet ke sau ky hop dong co the phat sinh chi phi phu.']
+    .forEach((n,i)=>doc.text(n,M+3,y+12+i*3.8));
+  y+=30;
+
+  // Footer on all pages
+  const pc=doc.getNumberOfPages();
+  for(let i=1;i<=pc;i++){
+    doc.setPage(i);
+    doc.setFillColor(20,23,34);doc.rect(0,285,W,12,'F');
+    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(100,116,139);
+    doc.text('Trang '+i+'/'+pc+' | Ngay: '+dateStr+' | LPT Industrial — Bao Gia Nhanh v2.0',M,292);
+    doc.text('Tai lieu noi bo — Chi danh cho muc dich tham khao gia thanh',W-M,292,{align:'right'});
+  }
+
+  const safe=(projName||'bao_gia').replace(/[^a-zA-Z0-9]/g,'_').substring(0,30);
+  doc.save('LPT_BaoGia_'+safe+'_'+dateStr.replace(/\//g,'-')+'.pdf');
+}
+
+// ─── PERSISTENT STORAGE (File JSON trên ổ cứng) ──────
+// Ưu tiên: File System Access API → localStorage backup
+// File lưu tại: cùng thư mục với tool, tên LPT_QuoteData.json
+
+let _fsHandle = null;   // FileSystemFileHandle khi đã bind file
+const LS_KEY   = 'lpt_quote_history';
+const LS_FPATH = 'lpt_fspath_hint';   // chỉ lưu hint tên file
+
+// ── Đọc dữ liệu khi khởi động ─────────────────────────
+async function initStorage() {
+  // Thử localStorage trước để render ngay không chờ
+  const cached = localStorage.getItem(LS_KEY);
+  if (cached) { try { quoteHistory = JSON.parse(cached); } catch(e){} }
+  renderHistory();
+  updateStorageBadge();
+}
+
+// ── Ghi xuống file JSON ────────────────────────────────
+async function persistToFile() {
+  if (!_fsHandle) return false;
+  try {
+    const writable = await _fsHandle.createWritable();
+    await writable.write(JSON.stringify({ version:2, quotes: quoteHistory }, null, 2));
+    await writable.close();
+    return true;
+  } catch(e) { console.warn('Ghi file thất bại:', e); return false; }
+}
+
+// ── Bind / tạo file lưu trữ ───────────────────────────
+async function bindDataFile(mode='open') {
+  if (!window.showSaveFilePicker && !window.showOpenFilePicker) {
+    alert('Trình duyệt không hỗ trợ File System Access API.\nVui lòng dùng Chrome / Edge 86+.\n\nDữ liệu sẽ lưu vào localStorage tạm thời.');
+    return;
+  }
+  try {
+    if (mode === 'new') {
+      _fsHandle = await window.showSaveFilePicker({
+        suggestedName: 'LPT_QuoteData.json',
+        types: [{ description: 'JSON Data', accept: { 'application/json': ['.json'] } }]
+      });
+      await persistToFile();
+      localStorage.setItem(LS_FPATH, _fsHandle.name);
+      showToast('✅ Đã tạo file lưu trữ: ' + _fsHandle.name, 'green');
+    } else {
+      const [handle] = await window.showOpenFilePicker({
+        types: [{ description: 'JSON Data', accept: { 'application/json': ['.json'] } }]
+      });
+      _fsHandle = handle;
+      const file = await _fsHandle.getFile();
+      const text = await file.text();
+      const data = JSON.parse(text);
+      quoteHistory = Array.isArray(data.quotes) ? data.quotes : (Array.isArray(data) ? data : []);
+      localStorage.setItem(LS_KEY, JSON.stringify(quoteHistory));
+      localStorage.setItem(LS_FPATH, _fsHandle.name);
+      showToast('✅ Đã kết nối file: ' + _fsHandle.name + ' (' + quoteHistory.length + ' báo giá)', 'green');
+    }
+    updateStorageBadge();
+    renderHistory();
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('❌ Lỗi: ' + e.message, 'red');
+  }
+}
+
+// ── Export JSON thủ công (fallback mọi browser) ────────
+function exportJSON() {
+  const blob = new Blob([JSON.stringify({ version:2, quotes: quoteHistory }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'LPT_QuoteData_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showToast('📥 Đã xuất file JSON', 'blue');
+}
+
+// ── Import JSON thủ công ───────────────────────────────
+function importJSON() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = async e => {
+    try {
+      const text = await e.target.files[0].text();
+      const data = JSON.parse(text);
+      const imported = Array.isArray(data.quotes) ? data.quotes : (Array.isArray(data) ? data : []);
+      // Merge: thêm những quote chưa có (theo id)
+      const existIds = new Set(quoteHistory.map(q=>q.id));
+      const newOnes = imported.filter(q=>!existIds.has(q.id));
+      quoteHistory = [...newOnes, ...quoteHistory].slice(0, 200);
+      localStorage.setItem(LS_KEY, JSON.stringify(quoteHistory));
+      if (_fsHandle) await persistToFile();
+      renderHistory();
+      showToast('✅ Đã nhập ' + newOnes.length + ' báo giá mới (merge)', 'green');
+    } catch(e) { showToast('❌ File không hợp lệ: ' + e.message, 'red'); }
+  };
+  inp.click();
+}
+
+// ── Toast notification ─────────────────────────────────
+function showToast(msg, color='green') {
+  const colors = { green:'#059669', red:'#dc2626', blue:'#2563eb', orange:'#d97706' };
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:20px;right:20px;z-index:9999;
+    background:${colors[color]||colors.green};color:#fff;
+    padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);max-width:320px;line-height:1.4;
+    animation:slideIn .2s ease`;
+  t.textContent = msg;
+  if (!document.getElementById('toast-style')) {
+    const s = document.createElement('style');
+    s.id = 'toast-style';
+    s.textContent = '@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}';
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ── Badge trạng thái lưu trữ ──────────────────────────
+function updateStorageBadge() {
+  const badges = [
+    document.getElementById('storage-badge'),
+    document.getElementById('storage-badge-header')
+  ];
+  badges.forEach((badge, i) => {
+    if (!badge) return;
+    if (_fsHandle) {
+      badge.style.background = '#052e16';
+      badge.style.color = '#4ade80';
+      badge.style.borderColor = '#166534';
+      // Header badge: tên file ngắn gọn; Tab badge: đầy đủ
+      badge.textContent = i === 1
+        ? '💾 ' + _fsHandle.name
+        : '💾 File: ' + _fsHandle.name;
+    } else {
+      badge.style.background = '#1c1a0e';
+      badge.style.color = '#facc15';
+      badge.style.borderColor = '#854d0e';
+      badge.textContent = i === 1
+        ? '⚠️ localStorage'
+        : '⚠️ Chưa bind file — dùng localStorage';
+    }
+  });
+}
+
+// ── Lưu một báo giá ───────────────────────────────────
+async function saveQuote(type, name, totalM) {
+  quoteHistory.unshift({ id: Date.now(), type, name, totalM, date: new Date().toLocaleDateString('vi-VN') });
+  if (quoteHistory.length > 200) quoteHistory.pop();
+  // Luôn ghi localStorage làm backup
+  localStorage.setItem(LS_KEY, JSON.stringify(quoteHistory));
+  // Ghi file nếu đã bind
+  const ok = await persistToFile();
+  renderHistory();
+  showToast(ok ? '💾 Đã lưu vào file JSON' : '💾 Đã lưu (localStorage) — bind file để lưu vĩnh viễn', ok ? 'green' : 'orange');
+}
+
+async function clearHistory() {
+  if (!confirm('Xóa toàn bộ ' + quoteHistory.length + ' báo giá?\nHành động này không thể hoàn tác.')) return;
+  quoteHistory = [];
+  localStorage.removeItem(LS_KEY);
+  if (_fsHandle) await persistToFile();
+  renderHistory();
+  showToast('🗑️ Đã xóa toàn bộ lịch sử', 'red');
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  const counter = document.getElementById('quote-count');
+  if (counter) counter.textContent = quoteHistory.length;
+  if (!el) return;
+  if (!quoteHistory.length) {
+    el.innerHTML = '<div style="color:#475569;font-size:12px;text-align:center;padding:40px;">Chưa có báo giá nào.</div>';
+    return;
+  }
+  el.innerHTML = quoteHistory.map((q,i) => `
+    <div class="history-item">
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:#e2e8f0">${q.name||'(Chưa đặt tên)'}</div>
+        <div style="font-size:10px;color:#475569;margin-top:2px">${q.type} • ${q.date}</div>
+      </div>
+      <div style="text-align:right;margin-left:12px">
+        <div style="font-size:14px;font-weight:700;color:#60a5fa">${fmt(q.totalM)}</div>
+        <div style="font-size:10px;color:#475569">VNĐ</div>
+      </div>
+      <button onclick="deleteQuote(${i})" style="margin-left:10px;background:#2d0a0a;border:1px solid #7f1d1d;color:#f87171;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button>
+    </div>`).join('');
+}
+
+async function deleteQuote(i) {
+  quoteHistory.splice(i, 1);
+  localStorage.setItem(LS_KEY, JSON.stringify(quoteHistory));
+  if (_fsHandle) await persistToFile();
+  renderHistory();
+  showToast('🗑️ Đã xóa báo giá', 'orange');
+}
+
+// ─── TAB ──────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='history')renderHistory();
+  updateMobileTotal();
+  // Trên mobile: cuộn ngay về đầu trang để thấy nội dung tab mới
+  if(window.innerWidth<=768){
+    window.scrollTo(0,0);
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────
+updateVTForm();
+renderMaterialTable();
+renderMaterialOutput();
+calcCTM();calcKCT();calcTD();calcTK();
+initStorage();
+updateMobileTotal();
+</script>
+</body>
+</html>
