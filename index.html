@@ -699,7 +699,12 @@ const fmt = n => {
   return vnd.toLocaleString('vi-VN') + ' ₫';
 };
 const fmtKg = n => n>=1000?(n/1000).toFixed(3)+' tấn':n.toFixed(1)+' kg';
-const v = id => parseFloat(document.getElementById(id)?.value)||0;
+const v = id => {
+  const el = document.getElementById(id);
+  if(!el) return 0;
+  if(el.dataset.raw !== undefined) return parseFloat(el.dataset.raw)||0;
+  return parseFloat(String(el.value).replace(/\./g,'').replace(',','.'))||0;
+};
 const vp = id => v(id)/100;
 let quoteHistory = JSON.parse(localStorage.getItem('lpt_quote_history')||'[]');
 let materials = [];
@@ -795,13 +800,14 @@ function updateVTForm(){
   const p=profiles[type];
   document.getElementById('vt-form-area').innerHTML=p.fields.map(f=>`
     <div class="field-row" style="margin-bottom:5px"><div class="field"><label>${f.label}</label><input type="number" id="vtf-${f.id}" value="${f.val}" min="0" step="any"></div></div>`).join('');
+  setupNumberFormatting();
 }
 
 function addMaterial(){
   const type=document.getElementById('vt-mattype').value;
   const p=profiles[type];
   const f={};
-  p.fields.forEach(fld=>{f[fld.id]=parseFloat(document.getElementById('vtf-'+fld.id)?.value)||0;});
+  p.fields.forEach(fld=>{f[fld.id]=v('vtf-'+fld.id);});
   const netKg=p.calc(f);
   const wastePct=v('vt-waste')/100;
   const grossKg=netKg*(1+wastePct);
@@ -1346,7 +1352,23 @@ function switchTab(name){
   }
 }
 
+// ─── NUMBER INPUT FORMATTING (80000 → 80.000) ────────────────────────
+function _parseNum(s){return parseFloat(String(s).replace(/\./g,'').replace(',','.'))||0;}
+function _fmtNum(n){const num=typeof n==='string'?_parseNum(n):(n||0);if(!num)return '0';return num.toLocaleString('vi-VN');}
+function setupNumberFormatting(){
+  document.querySelectorAll('input[type="number"]').forEach(inp=>{
+    const num=parseFloat(inp.value)||0;
+    inp.type='text';inp.setAttribute('inputmode','decimal');
+    inp.dataset.raw=String(num);
+    inp.value=_fmtNum(num);
+    inp.addEventListener('focus',function(){this.value=this.dataset.raw||'';this.select();});
+    inp.addEventListener('input',function(){this.dataset.raw=String(_parseNum(this.value));},true);
+    inp.addEventListener('blur',function(){const n=_parseNum(this.value);this.dataset.raw=String(n);this.value=_fmtNum(n);});
+  });
+}
+
 // ─── INIT ─────────────────────────────────────────────
+setupNumberFormatting();
 updateVTForm();
 renderMaterialTable();
 renderMaterialOutput();
